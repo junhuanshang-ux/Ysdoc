@@ -1,0 +1,17 @@
+HYJYRQ-会议纪要日期
+AAAAAA-中标公司
+BBBBBB-公司2
+CCCCCC-公司3
+BJ1-中标公司报价
+BJ2-公司2报价
+BJ3-公司3报价
+XMMC-项目名称
+XJDW-询价单位
+YQRQ-邀请日期
+XJRQ-询价日期
+ZXRQ-中选日期
+GSRQ-公示日期
+GSBRQ-公式表日期
+QDRQ-签订日期
+YSRQ-验收日期
+DGZH-中标公司对公账户
