@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>报账资料生成器 · 信息录入</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --primary: #4f46e5;
+      --primary-weak: rgba(79,70,229,.15);
+      --border: #1f2937;
+      --input: #0b1220;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 80% -10%, #1f2937 0%, rgba(31,41,55,0) 60%), var(--bg);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    }
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 40px 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 960px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) padding-box, radial-gradient(1200px 800px at -20% 0%, rgba(79,70,229,.3), rgba(79,70,229,0) 60%) border-box, var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      overflow: hidden;
+    }
+    .header {
+      padding: 28px 28px 0 28px;
+    }
+    .title {
+      margin: 0 0 6px 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+    .subtitle {
+      margin: 0 0 22px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    form {
+      padding: 0 28px 28px 28px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+    @media (max-width: 860px) {
+      .col-4 { grid-column: span 12; }
+      .col-6 { grid-column: span 12; }
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .3px;
+    }
+    .control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--input);
+      border: 1px solid #0f1a2c;
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+    }
+    input::placeholder { color: #6b7280; }
+    .suffix {
+      color: #9aa4b2;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding: 20px 28px 28px 28px;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--primary-weak), rgba(79,70,229,.05));
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform .04s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow: 0 10px 24px rgba(79,70,229,.18);
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:hover { border-color: #273270; box-shadow: 0 16px 28px rgba(79,70,229,.28); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary {
+      background: transparent;
+      color: var(--text);
+      box-shadow: none;
+    }
+    .tips {
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: auto;
+      align-self: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="信息录入表单">
+      <div class="header">
+        <h1 class="title">信息录入表单</h1>
+        <p class="subtitle">支持下拉选择与手动输入，简洁高效。</p>
+      </div>
+
+      <form id="infoForm" novalidate>
+        <div class="grid">
+          <!-- 中标公司 -->
+          <div class="field col-4">
+            <label class="label" for="bidCompany">中标公司</label>
+            <div class="control">
+              <input id="bidCompany" name="bidCompany" type="text" list="companyList" placeholder="选择或输入中标公司" autocomplete="organization">
+            </div>
+          </div>
+          <!-- 中标公司报价 -->
+          <div class="field col-4">
+            <label class="label" for="bidPrice">中标公司报价</label>
+            <div class="control">
+              <input id="bidPrice" name="bidPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+              <span class="suffix">元</span>
+            </div>
+          </div>
+          <div class="field col-4">
+            <label class="label" for="projectName">项目名称</label>
+            <div class="control">
+              <input id="projectName" name="projectName" type="text" placeholder="请输入项目名称">
+            </div>
+          </div>
+
+          <!-- 公司2 -->
+          <div class="field col-4">
+            <label class="label" for="company2">公司2</label>
+            <div class="control">
+              <input id="company2" name="company2" type="text" list="companyList" placeholder="选择或输入公司2">
+            </div>
+          </div>
+          <!-- 公司2报价 -->
+          <div class="field col-4">
+            <label class="label" for="price2">公司2报价</label>
+            <div class="control">
+              <input id="price2" name="price2" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+              <span class="suffix">元</span>
+            </div>
+          </div>
+          <!-- 询价单位 -->
+          <div class="field col-4">
+            <label class="label" for="inquiryOrg">询价单位</label>
+            <div class="control">
+              <input id="inquiryOrg" name="inquiryOrg" type="text" list="orgList" placeholder="选择或输入询价单位" autocomplete="organization">
+            </div>
+          </div>
+
+          <!-- 公司3 -->
+          <div class="field col-4">
+            <label class="label" for="company3">公司3</label>
+            <div class="control">
+              <input id="company3" name="company3" type="text" list="companyList" placeholder="选择或输入公司3">
+            </div>
+          </div>
+          <!-- 公司3报价 -->
+          <div class="field col-4">
+            <label class="label" for="price3">公司3报价</label>
+            <div class="control">
+              <input id="price3" name="price3" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+              <span class="suffix">元</span>
+            </div>
+          </div>
+          <!-- 询价日期 -->
+          <div class="field col-4">
+            <label class="label" for="inquiryDate">询价日期</label>
+            <div class="control">
+              <input id="inquiryDate" name="inquiryDate" type="date">
+            </div>
+          </div>
+
+          <!-- 中标对公账户信息 -->
+          <div class="field col-12">
+            <label class="label" for="bankAccount">中标对公账户信息</label>
+            <div class="control">
+              <input id="bankAccount" name="bankAccount" type="text" list="accountList" placeholder="选择或输入账户（示例：开户名｜开户行｜账号）" autocomplete="off">
+            </div>
+          </div>
+
+
+        </div>
+      </form>
+
+      <div class="actions">
+        <button class="btn" type="button" id="generateBtn">生成文件</button>
+        <button class="btn secondary" type="reset" form="infoForm">清空</button>
+        <button class="btn secondary" type="button" id="readClipboardBtn">读取数据</button>
+
+        <span class="tips">不会修改原始 Word 模板，将在新文件夹中生成。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 预置可选项：可随时增删，亦可直接输入自定义 -->
+  <datalist id="companyList">
+  </datalist>
+  <datalist id="orgList">
+  </datalist>
+  <datalist id="accountList">
+  </datalist>
+
+  <!-- JSZip for .docx manipulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('infoForm');
+      var generateBtn = document.getElementById('generateBtn');
+      var statusBar = document.createElement('div');
+      statusBar.id = 'statusBar';
+      statusBar.style.display = 'none';
+
+      /** @type {FileSystemDirectoryHandle|null} */
+      var outDirHandle = null;
+      /** @type {{name:string, handle:FileSystemFileHandle}[]} */
+      var tplDocxFiles = []; // when using FS API fallback (not used in default flow)
+      /** @type {Record<string,string>} */
+      var mappingFromTxt = {};
+      /** cached lists loaded from data/*.json */
+      var cachedCompanies = [];
+      var cachedOrgs = [];
+      var cachedAccounts = [];
+
+      function setStatus(msg) { statusBar.textContent = msg; }
+
+      // Known template files under Word/ (default)
+      var defaultTemplateNames = [
+        '会议纪要.docx',
+        '公示结论.docx',
+        '拨款申请.docx',
+        '竞争性谈判中选通知书.docx',
+        '签到表.docx',
+        '询价邀请函.docx',
+        '谈判小组成员名单.docx',
+        '谈判小组成签到表.docx',
+        '采购项目公示表.docx',
+        '验收合格证明.docx'
+      ];
+
+      async function readTextFile(fileHandle) {
+        const file = await fileHandle.getFile();
+        return await file.text();
+      }
+
+      async function readArrayBuffer(fileHandle) {
+        const file = await fileHandle.getFile();
+        return await file.arrayBuffer();
+      }
+
+      // Load mapping and docx buffers from default Word/ path via fetch
+      async function loadTemplatesFromWordFolder() {
+        // 读取对照表
+        mappingFromTxt = {};
+        try {
+          const res = await fetch('Word/对照表.txt', { cache: 'no-store' });
+          if (res.ok) {
+            const txt = await res.text();
+            mappingFromTxt = parseMapping(txt);
+          }
+        } catch (e) {
+          // ignore; mapping optional
+        }
+        // 读取历史数据 data/*.json （若存在）
+        await loadDataJsons();
+        // 读取各 docx
+        /** @type {{name:string, buffer:ArrayBuffer}[]} */
+        const files = [];
+        let loaded = 0;
+        for (const name of defaultTemplateNames) {
+          try {
+            const res = await fetch('Word/' + encodeURIComponent(name), { cache: 'no-store' });
+            if (res.ok) {
+              const buf = await res.arrayBuffer();
+              files.push({ name, buffer: buf });
+              loaded++;
+            }
+          } catch (e) {
+            // skip missing
+          }
+        }
+        if (loaded === 0) {
+          throw new Error('未能从 Word 文件夹加载模板。若直接打开本地文件，浏览器可能阻止读取。建议：使用本地服务器或改用“选择输出位置”并让我启用文件夹选择回退方案。');
+        }
+        setStatus(`已加载模板 ${loaded} 个；映射项 ${Object.keys(mappingFromTxt).length} 个`);
+        return files;
+      }
+
+      async function loadJson(url) {
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) return null;
+          return await res.json();
+        } catch (_) { return null; }
+      }
+
+      async function loadDataJsons() {
+        // 直接从项目根 data/ 通过 HTTP 读取
+        let companies = await loadJson('data/companies.json');
+        let orgs = await loadJson('data/orgs.json');
+        let accounts = await loadJson('data/accounts.json');
+        if (Array.isArray(companies)) cachedCompanies = companies;
+        if (Array.isArray(orgs)) cachedOrgs = orgs;
+        if (Array.isArray(accounts)) cachedAccounts = accounts;
+        // Merge into datalists
+        hydrateDatalist('companyList', cachedCompanies);
+        hydrateDatalist('orgList', cachedOrgs);
+        hydrateDatalist('accountList', cachedAccounts);
+        var c = Array.isArray(cachedCompanies) ? cachedCompanies.length : 0;
+        var o = Array.isArray(cachedOrgs) ? cachedOrgs.length : 0;
+        var a = Array.isArray(cachedAccounts) ? cachedAccounts.length : 0;
+        if (c + o + a > 0) {
+          setStatus('已加载历史数据：公司 ' + c + '，单位 ' + o + '，账户 ' + a);
+        }
+      }
+
+      function hydrateDatalist(id, values) {
+        if (!Array.isArray(values) || values.length === 0) return;
+        var dl = document.getElementById(id);
+        if (!dl) return;
+        var existing = new Set(Array.from(dl.querySelectorAll('option')).map(function (o){return o.value.trim();}));
+        values.forEach(function (v){
+          var val = String(v || '').trim();
+          if (!val || existing.has(val)) return;
+          var op = document.createElement('option');
+          op.value = val;
+          dl.appendChild(op);
+          existing.add(val);
+        });
+      }
+
+      function getDatalistValues(id) {
+        var dl = document.getElementById(id);
+        if (!dl) return [];
+        return Array.from(dl.querySelectorAll('option')).map(function (o){ return o.value; }).filter(Boolean);
+      }
+
+      function uniqueMerge(listA, listB) {
+        var seen = new Set();
+        var out = [];
+        function addAll(arr){
+          arr.forEach(function (item){
+            var v = String(item || '').trim();
+            if (!v || seen.has(v)) return;
+            seen.add(v); out.push(v);
+          });
+        }
+        addAll(listA || []);
+        addAll(listB || []);
+        return out;
+      }
+
+      // 页面加载即尝试读取 data/*.json 以填充候选
+      (async function init() {
+        try { await loadDataJsons(); } catch (e) { /* ignore */ }
+        // 检查是否有来自询价计算的数据
+        checkForCalculationData();
+      })();
+
+      // 检查是否有来自询价计算的数据
+      function checkForCalculationData() {
+        try {
+          // 从URL参数中读取数据
+          console.log('当前URL:', window.location.href);
+          
+          // 手动解析URL参数
+          const url = window.location.href;
+          const paramsStart = url.indexOf('?');
+          
+          if (paramsStart !== -1) {
+            const paramsStr = url.substring(paramsStart + 1);
+            console.log('参数字符串:', paramsStr);
+            
+            const params = {};
+            paramsStr.split('&').forEach(param => {
+              const [key, value] = param.split('=');
+              if (key && value) {
+                params[key] = decodeURIComponent(value);
+              }
+            });
+            
+            console.log('解析后的参数:', params);
+            
+            const unit1Total = params.unit1Total;
+            const unit2Total = params.unit2Total;
+            const unit3Total = params.unit3Total;
+            
+            if (unit1Total) {
+              document.getElementById('bidPrice').value = unit1Total;
+              console.log('填充中标公司报价:', unit1Total);
+            }
+            if (unit2Total) {
+              document.getElementById('price2').value = unit2Total;
+              console.log('填充公司2报价:', unit2Total);
+            }
+            if (unit3Total) {
+              document.getElementById('price3').value = unit3Total;
+              console.log('填充公司3报价:', unit3Total);
+            }
+            
+            // 如果有参数，重定向到不带参数的URL，避免刷新页面时重复填充
+            if (unit1Total || unit2Total || unit3Total) {
+              const cleanUrl = url.substring(0, paramsStart);
+              window.history.replaceState({}, document.title, cleanUrl);
+              console.log('已清理URL参数，新URL:', cleanUrl);
+            }
+          } else {
+            console.log('URL中无参数');
+          }
+        } catch (e) {
+          console.warn('读取计算数据失败：', e);
+        }
+      }
+
+      // Parse mapping lines like: KEY-说明
+      function parseMapping(text) {
+        const map = {};
+        text.split(/\r?\n/).forEach(function (line) {
+          const t = line.trim();
+          if (!t) return;
+          const idx = t.indexOf('-');
+          if (idx > 0) {
+            const key = t.slice(0, idx).trim();
+            const val = t.slice(idx + 1).trim();
+            if (key) map[key] = val;
+          }
+        });
+        return map;
+      }
+
+      function buildReplacements() {
+        const data = Object.fromEntries(new FormData(form).entries());
+        /** 将表单字段映射为占位符 */
+        /** @type {Record<string,string>} */
+        var rep = {};
+        if (data.projectName) rep['XMMC'] = data.projectName;
+        if (data.inquiryOrg) rep['XJDW'] = data.inquiryOrg;
+        if (data.inquiryDate) rep['XJRQ'] = data.inquiryDate;
+        if (data.bidCompany) rep['AAAAAA'] = data.bidCompany;
+        if (data.company2) rep['BBBBBB'] = data.company2;
+        if (data.company3) rep['CCCCCC'] = data.company3;
+        if (data.bidPrice) {
+          rep['BJ1'] = String(data.bidPrice);
+          var n = Number(data.bidPrice);
+          if (!Number.isNaN(n)) rep['DX'] = rmbUpper(n);
+        }
+        if (data.price2) rep['BJ2'] = String(data.price2);
+        if (data.price3) rep['BJ3'] = String(data.price3);
+        if (data.bankAccount) rep['DGZH'] = data.bankAccount;
+
+        // 日期联动计算：基于询价日期
+        if (data.inquiryDate) {
+          const HOLIDAYS = new Set([
+            // 示例：'2025-01-01'
+          ]);
+          function pad(n) { return n < 10 ? '0' + n : '' + n; }
+          function formatCnDate(d) { return d.getFullYear() + '年' + pad(d.getMonth()+1) + '月' + pad(d.getDate()) + '日'; }
+          function parseDate(s) { return new Date(s + 'T00:00:00'); }
+          function addDays(d, n) { const t = new Date(d); t.setDate(t.getDate() + n); return t; }
+          function isWeekend(d) { const w = d.getDay(); return w === 0 || w === 6; }
+          function isHoliday(d) {
+            const y = d.getFullYear(), m = pad(d.getMonth()+1), dd = pad(d.getDate());
+            const iso = y + '-' + m + '-' + dd;
+            return isWeekend(d) || HOLIDAYS.has(iso);
+          }
+          function forwardAdjust(d) {
+            let cur = new Date(d);
+            while (isHoliday(cur)) { cur = addDays(cur, 1); }
+            return cur;
+          }
+
+          const xjrq = parseDate(data.inquiryDate); // 询价日期
+          const yqrq = addDays(xjrq, -1);           // 邀请日期 = 询价日期前一天（不做节假日顺延）
+          const gsb = forwardAdjust(addDays(xjrq, 1));  // 公示表日期 = 询价日期后一天（遇节假日顺延）
+          const gsrq = forwardAdjust(addDays(gsb, 7));  // 公示日期 = 公示表后一周（遇节假日顺延）
+          const zxrq = forwardAdjust(addDays(gsrq, 1)); // 中选日期 = 公示日期次日（遇节假日顺延）
+          const qdrq = forwardAdjust(addDays(zxrq, 1)); // 签订日期 = 中选日期次日（遇节假日顺延）
+          const ysrq = forwardAdjust(addDays(qdrq, 7)); // 验收日期 = 签订后一周（遇节假日顺延）
+          const hyjyrq = xjrq;                           // 会议纪要日期 = 询价日期
+
+          rep['YQRQ'] = formatCnDate(yqrq);
+          rep['GSBRQ'] = formatCnDate(gsb);     // 公示表日期占位符
+          rep['GSRQ'] = formatCnDate(gsrq);
+          rep['ZXRQ'] = formatCnDate(zxrq);
+          rep['QDRQ'] = formatCnDate(qdrq);
+          rep['YSRQ'] = formatCnDate(ysrq);
+          rep['HYJYRQ'] = formatCnDate(hyjyrq);
+          // 同步覆盖询价日期占位符为中文格式
+          rep['XJRQ'] = formatCnDate(xjrq);
+        }
+        return rep;
+      }
+
+      // 人民币数字转中文大写（到分）
+      function rmbUpper(amount) {
+        var fraction = ['角', '分'];
+        var digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+        var unit = [['元', '万', '亿', '兆'], ['', '拾', '佰', '仟']];
+        var head = amount < 0 ? '负' : '';
+        amount = Math.abs(amount);
+        var s = '';
+        // 小数
+        for (var i = 0; i < fraction.length; i++) {
+          var m = Math.floor(amount * Math.pow(10, i + 1)) % 10;
+          s += (digit[m] + fraction[i]).replace(/零./, '');
+        }
+        s = s || '整';
+        // 整数
+        amount = Math.floor(amount);
+        for (var i2 = 0; i2 < unit[0].length && amount > 0; i2++) {
+          var p = '';
+          for (var j = 0; j < unit[1].length && amount > 0; j++) {
+            p = digit[amount % 10] + unit[1][j] + p;
+            amount = Math.floor(amount / 10);
+          }
+          p = p.replace(/(零.)*零$/, '').replace(/^$/, '零');
+          s = p + unit[0][i2] + s;
+        }
+        s = s
+          .replace(/(零.)*零元/, '元')
+          .replace(/(零.)+/g, '零')
+          .replace(/^整$/, '零元整');
+        return head + s;
+      }
+      function escapeRegExp(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      async function replaceInDocx(arrayBuffer, replacements) {
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        const fileNames = Object.keys(zip.files);
+        function buildSplitRunRegex(token) {
+          // Allow XML tags between characters to match split runs in docx
+          var parts = token.split('').map(function (ch) {
+            return escapeRegExp(ch) + '(?:<[^>]+>)*';
+          });
+          return new RegExp(parts.join(''), 'g');
+        }
+        for (const name of fileNames) {
+          if (!/^(word\/).+\.xml$/i.test(name)) continue;
+          const file = zip.files[name];
+          let xml = await file.async('string');
+          // Replace all keys
+          for (const key in replacements) {
+            if (!replacements[key]) continue;
+            if (key === 'GSBRQ') {
+              // Only GSBRQ uses cross-run replacement to improve success rate
+              const splitRe = buildSplitRunRegex(key);
+              xml = xml.replace(splitRe, replacements[key]);
+            }
+            // Conservative: plain same-run replacement for all keys
+            const plainRe = new RegExp(escapeRegExp(key), 'g');
+            xml = xml.replace(plainRe, replacements[key]);
+          }
+          zip.file(name, xml);
+        }
+        return await zip.generateAsync({ type: 'blob' });
+      }
+
+      async function ensureDir(parent, name) {
+        return await parent.getDirectoryHandle(name, { create: true });
+      }
+
+      async function downloadZip(files, folderName) {
+        const zip = new JSZip();
+        const dir = zip.folder(folderName);
+        for (const f of files) {
+          dir.file(f.name, f.blob);
+        }
+        // also include data JSONs if present in files array with subpath 'data/...'
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'output-' + folderName + '.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      }
+
+      generateBtn.addEventListener('click', async function () {
+        try {
+          const data = Object.fromEntries(new FormData(form).entries());
+          const projectName = (data.projectName || '').trim();
+          if (!projectName) {
+            alert('请先填写“项目名称”。');
+            return;
+          }
+          const replacements = buildReplacements();
+          setStatus('开始生成，请稍候…');
+
+          // Load templates from default Word folder via fetch
+          let templates = await loadTemplatesFromWordFolder(); // {name, buffer}
+
+          // Replace and prepare outputs
+          const outputs = [];
+          for (const item of templates) {
+            const blob = await replaceInDocx(item.buffer, replacements);
+            outputs.push({ name: item.name, blob });
+          }
+
+          // Build data/*.json from current selections + cached + datalist
+          var companiesNow = ['bidCompany','company2','company3'].map(function (k){ return (data[k]||'').trim(); }).filter(Boolean);
+          var orgsNow = [(data.inquiryOrg||'').trim()].filter(Boolean);
+          var accountsNow = [(data.bankAccount||'').trim()].filter(Boolean);
+
+          var companiesAll = uniqueMerge(uniqueMerge(cachedCompanies, getDatalistValues('companyList')), companiesNow);
+          var orgsAll = uniqueMerge(uniqueMerge(cachedOrgs, getDatalistValues('orgList')), orgsNow);
+          var accountsAll = uniqueMerge(uniqueMerge(cachedAccounts, getDatalistValues('accountList')), accountsNow);
+
+          // Prepare JSON blobs
+          var companiesBlob = new Blob([JSON.stringify(companiesAll, null, 2)], {type:'application/json'});
+          var orgsBlob = new Blob([JSON.stringify(orgsAll, null, 2)], {type:'application/json'});
+          var accountsBlob = new Blob([JSON.stringify(accountsAll, null, 2)], {type:'application/json'});
+
+          // Save JSONs to project root data/ via backend API
+          try {
+            await fetch('/api/save-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                companies: companiesAll,
+                orgs: orgsAll,
+                accounts: accountsAll
+              })
+            });
+          } catch (e) {
+            console.warn('保存到后端失败，将继续本地生成：', e);
+          }
+
+          if (outDirHandle) {
+            // Write to chosen directory under project folder
+            const projectDir = await ensureDir(outDirHandle, projectName);
+            // write data folder
+            const dataDir = await projectDir.getDirectoryHandle('data', { create: true });
+            async function writeFile(dir, name, blob) {
+              const fh = await dir.getFileHandle(name, { create: true });
+              const w = await fh.createWritable();
+              await w.write(blob); await w.close();
+            }
+            await writeFile(dataDir, 'companies.json', companiesBlob);
+            await writeFile(dataDir, 'orgs.json', orgsBlob);
+            await writeFile(dataDir, 'accounts.json', accountsBlob);
+
+            let success = 0;
+            for (const out of outputs) {
+              const outHandle = await projectDir.getFileHandle(out.name, { create: true });
+              const writable = await outHandle.createWritable();
+              await writable.write(out.blob);
+              await writable.close();
+              success++;
+            }
+            setStatus(`生成完成：已写入 ${success} 个文件 → ${projectName}/`);
+            alert('生成完成！未对原始模板进行任何修改。');
+          } else {
+            // Default：打包为 ZIP 下载，文件夹名 = 项目名称（等价于默认 output）
+            // Add data/*.json into zip under projectName/data/
+            outputs.push({ name: 'data/companies.json', blob: companiesBlob });
+            outputs.push({ name: 'data/orgs.json', blob: orgsBlob });
+            outputs.push({ name: 'data/accounts.json', blob: accountsBlob });
+            await downloadZip(outputs, projectName);
+            setStatus(`已生成 ZIP：${projectName}.zip（请解压到 output 文件夹）`);
+          }
+
+        } catch (err) {
+          console.error(err);
+          alert('生成失败：' + err.message);
+        }
+      });
+
+      // 为读取数据按钮添加点击事件
+      document.getElementById('readClipboardBtn').addEventListener('click', async function () {
+        try {
+          // 读取剪贴板数据
+          const text = await navigator.clipboard.readText();
+          console.log('剪贴板数据:', text);
+          
+          // 解析数据
+          const parsedData = parseClipboardData(text);
+          if (parsedData) {
+            // 填充表单
+            fillFormData(parsedData);
+            alert('数据读取成功，已填充到表单中');
+          } else {
+            alert('无法解析剪贴板数据，请确保数据格式正确');
+          }
+        } catch (error) {
+          console.error('读取剪贴板失败:', error);
+          alert('读取剪贴板失败：' + error.message);
+        }
+      });
+
+      // 解析剪贴板数据
+      function parseClipboardData(text) {
+        try {
+          const data = {};
+          
+          // 提取项目名称
+          const projectNameMatch = text.match(/项目名称：(.*)/);
+          if (projectNameMatch) {
+            data.projectName = projectNameMatch[1].trim();
+          }
+          
+          // 提取甲方（采购方）
+          const buyerMatch = text.match(/甲方（采购方）：(.*)/);
+          if (buyerMatch) {
+            data.inquiryOrg = buyerMatch[1].trim();
+          }
+          
+          // 提取乙方（销售方）
+          const sellerMatch = text.match(/乙方（销售方）：(.*)/);
+          if (sellerMatch) {
+            data.bidCompany = sellerMatch[1].trim();
+          }
+          
+          // 提取询价日期
+          const dateMatch = text.match(/询价日期：(.*)/);
+          if (dateMatch) {
+            // 转换日期格式为 YYYY-MM-DD
+            const dateStr = dateMatch[1].trim();
+            const dateParts = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
+            if (dateParts) {
+              const year = dateParts[1];
+              const month = dateParts[2].padStart(2, '0');
+              const day = dateParts[3].padStart(2, '0');
+              data.inquiryDate = `${year}-${month}-${day}`;
+            }
+          }
+          
+          // 提取报价
+          const priceAMatch = text.match(/公司A：(.*)元/);
+          if (priceAMatch) {
+            data.bidPrice = priceAMatch[1].trim().replace(/,/g, '');
+          }
+          
+          const priceBMatch = text.match(/公司B：(.*)元/);
+          if (priceBMatch) {
+            data.price2 = priceBMatch[1].trim().replace(/,/g, '');
+          }
+          
+          const priceCMatch = text.match(/公司C：(.*)元/);
+          if (priceCMatch) {
+            data.price3 = priceCMatch[1].trim().replace(/,/g, '');
+          }
+          
+          console.log('解析后的数据:', data);
+          return data;
+        } catch (error) {
+          console.error('解析剪贴板数据失败:', error);
+          return null;
+        }
+      }
+
+      // 填充表单数据
+      function fillFormData(data) {
+        if (data.projectName) {
+          document.getElementById('projectName').value = data.projectName;
+        }
+        if (data.inquiryOrg) {
+          document.getElementById('inquiryOrg').value = data.inquiryOrg;
+        }
+        if (data.bidCompany) {
+          document.getElementById('bidCompany').value = data.bidCompany;
+        }
+        if (data.inquiryDate) {
+          document.getElementById('inquiryDate').value = data.inquiryDate;
+        }
+        if (data.bidPrice) {
+          document.getElementById('bidPrice').value = data.bidPrice;
+        }
+        if (data.price2) {
+          document.getElementById('price2').value = data.price2;
+        }
+        if (data.price3) {
+          document.getElementById('price3').value = data.price3;
+        }
+      }
+
+    })();
+  </script>
+</body>
+</html>
+
+
